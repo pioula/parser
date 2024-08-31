@@ -1,5 +1,5 @@
 from datetime import datetime
-from dataclasses import dataclass, field
+from dataclasses import dataclass, Field
 from typing import Optional
 from .Device import Device
 from .Action import Action
@@ -15,7 +15,7 @@ class UserTagEvent(BaseModel):
     device: Device
     action: Action
     origin: str
-    product_info: Product = field(metadata={"json_property": "product_info"})
+    product_info: Product
 
     def to_dict(self):
         return {
