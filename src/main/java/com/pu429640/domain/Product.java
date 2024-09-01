@@ -1,4 +1,4 @@
-package your.name.here.domain;
+package com.pu429640.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

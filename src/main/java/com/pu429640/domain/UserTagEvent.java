@@ -1,4 +1,4 @@
-package your.name.here.domain;
+package com.pu429640.domain;
 
 import java.time.Instant;
 
