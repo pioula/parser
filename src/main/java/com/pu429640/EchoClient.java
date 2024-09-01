@@ -17,17 +17,17 @@ import com.pu429640.domain.Aggregate;
 import com.pu429640.domain.AggregatesQueryResult;
 import com.pu429640.domain.UserProfileResult;
 import com.pu429640.domain.UserTagEvent;
-import com.pu429640.services.UserTagStorage;
+import com.pu429640.services.IUserTagStorage;
 
 @RestController
 public class EchoClient {
 
     private static final Logger log = LoggerFactory.getLogger(EchoClient.class);
 
-    private final UserTagStorage userTagStorage;
+    private final IUserTagStorage userTagStorage;
 
     @Autowired
-    public EchoClient(UserTagStorage userTagStorage) {
+    public EchoClient(IUserTagStorage userTagStorage) {
         this.userTagStorage = userTagStorage;
     }
 
