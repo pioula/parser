@@ -1,17 +1,17 @@
-# Use an official Python runtime as a parent image
-FROM python:3.9-slim
+# Use Python 3.10 slim image as the base
+FROM python:3.10-slim
 
-# Set the working directory in the container
+# Set working directory in the container
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# Copy the requirements file into the container
+COPY requirements.txt .
 
-# Install any needed packages specified in requirements.txt
+# Install the Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Make port 8000 available to the world outside this container
-EXPOSE 8000
+# Copy the project files into the container
+COPY . .
 
-# Run simple_client_application.py when the container launches
-CMD ["python", "src/main/python/simple_client_application.py"]
+# Set the command to run your application
+CMD ["python3", "src/main.py"]
