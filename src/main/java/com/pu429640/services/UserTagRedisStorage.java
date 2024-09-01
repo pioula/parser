@@ -2,7 +2,12 @@ package com.pu429640.services;
 
 import com.pu429640.domain.UserProfileResult;
 import com.pu429640.domain.UserTagEvent;
+import com.pu429640.EchoClient;
 import com.pu429640.domain.Action;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -17,13 +22,17 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserTagRedisStorage implements IUserTagStorage {
+    private static final Logger log = LoggerFactory.getLogger(UserTagRedisStorage.class);
+
 
     private static final int MAX_TAGS_PER_TYPE = 200;
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
     private static final String KEY_PREFIX = "userTag:";
 
+    @Autowired
     private final RedisTemplate<String, UserTagEvent> redisTemplate;
-
+    
+    @Autowired
     public UserTagRedisStorage(RedisTemplate<String, UserTagEvent> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }

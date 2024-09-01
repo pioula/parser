@@ -4,6 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pu429640.services.IUserTagStorage;
 import com.pu429640.services.UserTagLocalStorage;
 import com.pu429640.services.UserTagRedisStorage;
+
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,11 +21,14 @@ import com.pu429640.domain.UserTagEvent;
 @Configuration
 public class UserTagStorageConfig {
 
+    @Autowired
+    RedisConnectionFactory redisConnectionFactory;
+
     @Value("${user.tag.storage.type}")
     private String storageType;
 
     @Bean
-    public IUserTagStorage userTagStorage(RedisConnectionFactory redisConnectionFactory, ObjectMapper objectMapper) {
+    public IUserTagStorage userTagStorage(ObjectMapper objectMapper) {
         if ("redis".equalsIgnoreCase(storageType)) {
             return new UserTagRedisStorage(redisTemplate(redisConnectionFactory, objectMapper));
         } else {
@@ -40,5 +47,10 @@ public class UserTagStorageConfig {
         
         template.setValueSerializer(serializer);
         return template;
+    }
+
+    @PostConstruct
+    public void warmUpRedisConnection() {
+        redisConnectionFactory.getConnection().ping();
     }
 }
