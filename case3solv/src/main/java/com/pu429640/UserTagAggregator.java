@@ -11,8 +11,6 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.*;
-import org.apache.kafka.streams.processor.api.Processor;
-import org.apache.kafka.streams.processor.api.Record;
 
 import java.sql.SQLException;
 import java.time.Duration;
@@ -20,7 +18,7 @@ import java.util.Properties;
 
 public class UserTagAggregator {
 
-    private static PostgresWriter postgresWriter;
+    private static MySqlWriter mySqlWriter;
 
     public static void main(String[] args) throws SQLException {
         Properties props = new Properties();
@@ -30,17 +28,20 @@ public class UserTagAggregator {
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, UserTagEventTimestampExtractor.class.getName());
 
-        // PostgreSQL configuration
-        props.put("postgres.url", "jdbc:postgresql://localhost:5432/your_database");
-        props.put("postgres.user", "your_username");
-        props.put("postgres.password", "your_password");
-        props.put("postgres.table", "user_tag_aggregations");
+        // MySQL configuration
+        props.put("mysql.url", String.format("jdbc:mysql://%s:%s/%s",
+            System.getenv("MYSQL_HOST"),
+            System.getenv("MYSQL_PORT"),
+            System.getenv("MYSQL_DATABASE")));
+        props.put("mysql.user", System.getenv("MYSQL_ROOT_USER"));
+        props.put("mysql.password", System.getenv("MYSQL_ROOT_PASSWORD"));
+        props.put("mysql.table", "user_tag_aggregations");
 
-        postgresWriter = new PostgresWriter(
-            props.getProperty("postgres.url"),
-            props.getProperty("postgres.user"),
-            props.getProperty("postgres.password"),
-            props.getProperty("postgres.table")
+        mySqlWriter = new MySqlWriter(
+            props.getProperty("mysql.url"),
+            props.getProperty("mysql.user"),
+            props.getProperty("mysql.password"),
+            props.getProperty("mysql.table")
         );
 
         StreamsBuilder builder = new StreamsBuilder();
@@ -71,22 +72,15 @@ public class UserTagAggregator {
                 )
                 .suppress(Suppressed.untilWindowCloses(Suppressed.BufferConfig.unbounded()))
                 .toStream()
-                .process(PostgresProcessor::new);
+                .process(() -> new MySqlProcessor(props));
 
         KafkaStreams streams = new KafkaStreams(builder.build(), props);
         streams.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             streams.close();
-            postgresWriter.close();
+            mySqlWriter.close();
         }));
-    }
-
-    private static class PostgresProcessor implements Processor<Windowed<String>, Aggregation, Void, Void> {
-        @Override
-        public void process(Record<Windowed<String>, Aggregation> record) {
-            postgresWriter.writeAggregation(record.key(), record.value());
-        }
     }
 
     private static Serde<UserTagEvent> createUserTagEventSerde() {
