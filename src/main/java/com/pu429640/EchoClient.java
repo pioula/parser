@@ -18,6 +18,7 @@ import com.pu429640.domain.AggregatesQueryResult;
 import com.pu429640.domain.UserProfileResult;
 import com.pu429640.domain.UserTagEvent;
 import com.pu429640.services.IUserTagStorage;
+import com.pu429640.services.KafkaProducerService;
 
 @RestController
 public class EchoClient {
@@ -25,16 +26,20 @@ public class EchoClient {
     private static final Logger log = LoggerFactory.getLogger(EchoClient.class);
 
     private final IUserTagStorage userTagStorage;
+    private final KafkaProducerService kafkaProducerService;
 
     @Autowired
-    public EchoClient(IUserTagStorage userTagStorage) {
+    public EchoClient(IUserTagStorage userTagStorage, KafkaProducerService kafkaProducerService) {
         this.userTagStorage = userTagStorage;
+        this.kafkaProducerService = kafkaProducerService;
     }
 
     @PostMapping("/user_tags")
     public ResponseEntity<Void> addUserTag(@RequestBody(required = false) UserTagEvent userTag) {
         if (userTag != null) {
             userTagStorage.addUserTag(userTag);
+            kafkaProducerService.sendUserTagEvent(userTag);
+            log.info("User tag added and sent to Kafka: {}", userTag);
         }
         return ResponseEntity.noContent().build();
     }
