@@ -24,7 +24,7 @@ public class MySqlWriter {
     private final String password;
     private final String tableName;
     private final ConcurrentLinkedQueue<AggregationEntry> batchEntries;
-    private static final int BATCH_SIZE = 10000;
+    private static final int BATCH_SIZE = 30000;
     private static final int FLUSH_INTERVAL_SECONDS = 5;
     private final ScheduledExecutorService scheduler;
     private final ReentrantLock writeLock;
