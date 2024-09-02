@@ -2,16 +2,10 @@ package com.pu429640;
 
 import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.processor.api.Processor;
-import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 
 public class BucketLogger implements Processor<Windowed<String>, Aggregation, Void, Void> {
-    private ProcessorContext<Void, Void> context;
-
-    @Override
-    public void init(ProcessorContext<Void, Void> context) {
-        this.context = context;
-    }
+    private static int distinct = 0;
 
     @Override
     public void process(Record<Windowed<String>, Aggregation> record) {
@@ -27,14 +21,14 @@ public class BucketLogger implements Processor<Windowed<String>, Aggregation, Vo
         String bucketEnd = formatTimestamp(record.key().window().end());
 
         // Log the bucket information
+        System.out.println("Distinct1: " + distinct);
         System.out.printf("New bucket created: %s - %s\n", bucketStart, bucketEnd);
         System.out.printf("Action: %s, Origin: %s, Brand ID: %s, Category ID: %s\n",
                 keyParts[0], keyParts[1], keyParts[2], keyParts[3]);
-        System.out.printf("Count: %d, Sum Price: %d\n\n", value.count, value.sumPrice);
+        System.out.printf("Count: %d, Sum Price: %d\n\n", value.getCount(), value.getSumPrice());
+        distinct += 1;
+        System.out.println("Distinct2: " + distinct);
     }
-
-    @Override
-    public void close() {}
 
     private String formatTimestamp(long timestamp) {
         // Implement timestamp formatting logic here
