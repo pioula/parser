@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: case12
+  name: case12
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: case12
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: case12
+    spec:
+      containers:
+      - image: pioula/case12:8
+        name: case12
+        ports:
+        - containerPort: 8088
+        env:
+        - name: REDIS_HOST
+          value: "redis-service"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: STORAGE_TYPE
+          value: "redis"
+        - name: REDIS_POOL_MIN_IDLE
+          value: "100"
+        resources: {}
+status: {}

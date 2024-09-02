@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: case3
+  name: case3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: case3
+  template:
+    metadata:
+      labels:
+        app: case3
+    spec:
+      initContainers:
+      - name: init-db
+        image: mysql:8.0
+        command: ['sh', '-c', '
+          mysql -h mysql-cluster -uroot -p${MYSQL_ROOT_PASSWORD} -e "
+            CREATE DATABASE IF NOT EXISTS allezondb;
+            USE allezondb;
+            CREATE TABLE IF NOT EXISTS events (
+              id INT AUTO_INCREMENT PRIMARY KEY,
+              time DATETIME,
+              action VARCHAR(50),
+              origin VARCHAR(50),
+              brand_id VARCHAR(50),
+              category_id VARCHAR(50),
+              price DECIMAL(10, 2)
+            );
+            CREATE INDEX IF NOT EXISTS idx_time_action ON events (time, action);
+            CREATE INDEX IF NOT EXISTS idx_time_action_origin_brand_category ON events (time, action, origin, brand_id, category_id, price);
+            CREATE INDEX IF NOT EXISTS idx_origin ON events (origin);
+            CREATE INDEX IF NOT EXISTS idx_brand_id ON events (brand_id);
+            CREATE INDEX IF NOT EXISTS idx_category_id ON events (category_id);
+            CREATE INDEX IF NOT EXISTS idx_price ON events (price);
+          "']
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mypwds
+              key: rootPassword
+      containers:
+      - image: pioula/case3:17
+        name: case3
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mypwds
+              key: rootPassword
+        - name: MYSQL_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: mypwds
+              key: rootUser
+        - name: MYSQL_ROOT_HOST
+          valueFrom:
+            secretKeyRef:
+              name: mypwds
+              key: rootHost
+        - name: MYSQL_HOST
+          value: "mysql-cluster"
+        - name: MYSQL_PORT
+          value: "3306"
+        - name: MYSQL_DATABASE
+          value: "allezondb"
+        resources: {}
