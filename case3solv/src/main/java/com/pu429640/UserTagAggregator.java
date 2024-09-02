@@ -1,6 +1,12 @@
 package com.pu429640;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.pu429640.domain.UserTagEvent;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
@@ -28,8 +34,12 @@ public class UserTagAggregator {
 
         StreamsBuilder builder = new StreamsBuilder();
 
-        KStream<String, String> userTags = builder.stream("usertagevents");
+        // Create a custom Serde for UserTagEvent
+        final Serde<UserTagEvent> userTagEventSerde = createUserTagEventSerde();
 
+        // Consume the stream with the custom Serde
+        KStream<String, UserTagEvent> userTags = builder.stream("usertagevents",
+                Consumed.with(Serdes.String(), userTagEventSerde));
 
         // Print each incoming event
         userTags.foreach((key, value) -> {
@@ -39,11 +49,6 @@ public class UserTagAggregator {
             System.out.println("--------------------");
         });
 
-        KafkaStreams streams = new KafkaStreams(builder.build(), props);
-        streams.start();
-
-        // Add shutdown hook to respond to SIGTERM and gracefully close Kafka Streams
-        Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
 
 //        // Create 1-minute tumbling windows
 //        TimeWindows timeWindows = TimeWindows.of(Duration.ofMinutes(1));
@@ -64,9 +69,34 @@ public class UserTagAggregator {
 //                .suppress(Suppressed.untilWindowCloses(Suppressed.BufferConfig.unbounded()))
 //                .toStream()
 //                .process(() -> new BucketLogger());
-//
-//        KafkaStreams streams = new KafkaStreams(builder.build(), props);
-//        streams.start();
+
+        KafkaStreams streams = new KafkaStreams(builder.build(), props);
+        streams.start();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
+    }
+
+    private static Serde<UserTagEvent> createUserTagEventSerde() {
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+
+        final Serializer<UserTagEvent> serializer = (topic, data) -> {
+            try {
+                return mapper.writeValueAsBytes(data);
+            } catch (Exception e) {
+                throw new RuntimeException("Error serializing UserTagEvent", e);
+            }
+        };
+
+        final Deserializer<UserTagEvent> deserializer = (topic, data) -> {
+            try {
+                return mapper.readValue(data, UserTagEvent.class);
+            } catch (Exception e) {
+                throw new RuntimeException("Error deserializing UserTagEvent", e);
+            }
+        };
+
+        return Serdes.serdeFrom(serializer, deserializer);
     }
 //
 //    private static String createGroupKey(UserTag userTag) {
