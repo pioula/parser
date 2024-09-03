@@ -55,7 +55,7 @@ public class UserTagAggregator {
                 Consumed.with(Serdes.String(), userTagEventSerde));
 
         // Create 1-minute tumbling windows
-        TimeWindows timeWindows = TimeWindows.ofSizeWithNoGrace(Duration.ofMinutes(1));
+        TimeWindows timeWindows = TimeWindows.ofSizeAndGrace(Duration.ofMinutes(1), Duration.ofSeconds(3));
 
         // Aggregate count and sum_price
         userTags

@@ -1,7 +1,10 @@
 package com.pu429640;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import com.pu429640.services.MySqlReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +27,17 @@ import com.pu429640.services.KafkaProducerService;
 public class EchoClient {
 
     private static final Logger log = LoggerFactory.getLogger(EchoClient.class);
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     private final IUserTagStorage userTagStorage;
     private final KafkaProducerService kafkaProducerService;
+    private final MySqlReader mySqlReader;
 
     @Autowired
-    public EchoClient(IUserTagStorage userTagStorage, KafkaProducerService kafkaProducerService) {
+    public EchoClient(IUserTagStorage userTagStorage, KafkaProducerService kafkaProducerService, MySqlReader mySqlReader) {
         this.userTagStorage = userTagStorage;
         this.kafkaProducerService = kafkaProducerService;
+        this.mySqlReader = mySqlReader;
     }
 
     @PostMapping("/user_tags")
@@ -39,7 +45,6 @@ public class EchoClient {
         if (userTag != null) {
             userTagStorage.addUserTag(userTag);
             kafkaProducerService.sendUserTagEvent(userTag);
-            log.info("User tag added and sent to Kafka: {}", userTag);
         }
         return ResponseEntity.noContent().build();
     }
@@ -63,6 +68,20 @@ public class EchoClient {
             @RequestParam(value = "category_id", required = false) String categoryId,
             @RequestBody(required = false) AggregatesQueryResult expectedResult) {
 
-        return ResponseEntity.ok(expectedResult);
+        // Parse time range
+        String[] timeRange = timeRangeStr.split("_");
+        if (timeRange.length != 2) {
+            return ResponseEntity.badRequest().build();
+        }
+        LocalDateTime timeFrom = LocalDateTime.parse(timeRange[0], FORMATTER);
+        LocalDateTime timeTo = LocalDateTime.parse(timeRange[1], FORMATTER);
+
+        // Query data using MySqlReader
+        AggregatesQueryResult result = mySqlReader.getAggregates(timeFrom, timeTo, action, aggregates, origin, brandId, categoryId);
+        if (expectedResult != result) {
+            log.info("mine: {}", result);
+            log.info("their: {}", expectedResult);
+        }
+        return ResponseEntity.ok(result);
     }
 }
