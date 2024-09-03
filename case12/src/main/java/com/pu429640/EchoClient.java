@@ -38,6 +38,7 @@ public class EchoClient {
         this.userTagStorage = userTagStorage;
         this.kafkaProducerService = kafkaProducerService;
         this.mySqlReader = mySqlReader;
+        log.info("Version: 12");
     }
 
     @PostMapping("/user_tags")
@@ -79,8 +80,7 @@ public class EchoClient {
         // Query data using MySqlReader
         AggregatesQueryResult result = mySqlReader.getAggregates(timeFrom, timeTo, action, aggregates, origin, brandId, categoryId);
         if (expectedResult != result) {
-            log.info("mine: {}", result);
-            log.info("their: {}", expectedResult);
+            log.info("key: a: {}, agg: {}, o: {}, b: {}, c: {}", action, aggregates, origin, brandId, categoryId);
         }
         return ResponseEntity.ok(result);
     }

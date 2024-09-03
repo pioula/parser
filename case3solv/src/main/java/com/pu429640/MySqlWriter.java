@@ -8,14 +8,12 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MySqlWriter {
     private static final Logger logger = LoggerFactory.getLogger(MySqlWriter.class);
@@ -24,10 +22,12 @@ public class MySqlWriter {
     private final String password;
     private final String tableName;
     private final ConcurrentLinkedQueue<AggregationEntry> batchEntries;
-    private static final int BATCH_SIZE = 30000;
-    private static final int FLUSH_INTERVAL_SECONDS = 5;
+   private static final int BATCH_SIZE = 30000;
+   private static final int FLUSH_INTERVAL_SECONDS = 5;
     private final ScheduledExecutorService scheduler;
-    private final ReentrantLock writeLock;
+    private Instant lastProcessedWindowStart;
+    private final ExecutorService flushExecutor;
+    private final AtomicInteger activeFlushCount;
 
     public MySqlWriter(String url, String user, String password, String tableName) throws SQLException {
         this.url = url;
@@ -36,10 +36,12 @@ public class MySqlWriter {
         this.tableName = tableName;
         this.batchEntries = new ConcurrentLinkedQueue<>();
         this.scheduler = Executors.newScheduledThreadPool(1);
-        this.writeLock = new ReentrantLock();
 
         createTableIfNotExists();
         schedulePeriodicFlush();
+        this.lastProcessedWindowStart = Instant.EPOCH;
+        this.flushExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        this.activeFlushCount = new AtomicInteger(0);
     }
 
     private void createTableIfNotExists() throws SQLException {
@@ -60,13 +62,25 @@ public class MySqlWriter {
         }
     }
 
-    private void schedulePeriodicFlush() {
-        scheduler.scheduleAtFixedRate(this::flushBatch, FLUSH_INTERVAL_SECONDS, FLUSH_INTERVAL_SECONDS, TimeUnit.SECONDS);
-    }
+   private void schedulePeriodicFlush() {
+       scheduler.scheduleAtFixedRate(this::flushBatch, FLUSH_INTERVAL_SECONDS, FLUSH_INTERVAL_SECONDS, TimeUnit.SECONDS);
+   }
 
     public void writeAggregation(Windowed<String> windowedKey, Aggregation aggregation) {
+        Instant currentWindowStart = Instant.ofEpochMilli(windowedKey.window().startTime().toEpochMilli());
+
+        // Check if this is a new window
+        if (currentWindowStart.isAfter(lastProcessedWindowStart)) {
+            logger.info("New window started at: {}", currentWindowStart);
+
+            // // Measure time to flush the batch (write the window data)
+            // flushBatch();
+
+            lastProcessedWindowStart = currentWindowStart;
+        }
+
         String[] keyParts = windowedKey.key().split(":");
-        
+
         if (keyParts.length < 4) {
             logger.error("Invalid key format. Expected at least 4 parts, but got: {}. Key: {}", keyParts.length, windowedKey.key());
             return;
@@ -78,20 +92,20 @@ public class MySqlWriter {
         String categoryId = keyParts[3];
 
         AggregationEntry entry = new AggregationEntry(
-            Instant.ofEpochMilli(windowedKey.window().startTime().toEpochMilli()),
-            action,
-            origin,
-            brandId,
-            categoryId,
-            aggregation.getCount(),
-            aggregation.getSumPrice()
+                currentWindowStart,
+                action,
+                origin,
+                brandId,
+                categoryId,
+                aggregation.getCount(),
+                aggregation.getSumPrice()
         );
 
         batchEntries.offer(entry);
 
-        if (batchEntries.size() >= BATCH_SIZE) {
-            flushBatch();
-        }
+    //    if (batchEntries.size() >= BATCH_SIZE) {
+    //        flushBatch();
+    //    }
     }
 
     private void flushBatch() {
@@ -105,12 +119,19 @@ public class MySqlWriter {
             return;
         }
 
-        writeLock.lock();
-        try {
-            executeBatchWrite(entriesAsList);
-        } finally {
-            writeLock.unlock();
-        }
+        activeFlushCount.incrementAndGet();
+        flushExecutor.submit(() -> {
+            try {
+                Instant beforeFlush = Instant.now();
+                executeBatchWrite(entriesAsList);
+                Instant afterFlush = Instant.now();
+
+                Duration flushDuration = Duration.between(beforeFlush, afterFlush);
+                logger.info("Time to write window data: {} seconds", flushDuration.toSeconds());
+            } finally {
+                activeFlushCount.decrementAndGet();
+            }
+        });
     }
 
     private void executeBatchWrite(List<AggregationEntry> entries) {
@@ -144,17 +165,19 @@ public class MySqlWriter {
     }
 
     public void close() {
-        scheduler.shutdown();
+        flushExecutor.shutdown();
         try {
-            if (!scheduler.awaitTermination(60, TimeUnit.SECONDS)) {
-                scheduler.shutdownNow();
+            // Wait for all ongoing flushes to complete
+            while (activeFlushCount.get() > 0) {
+                if (!flushExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
+                    logger.info("Waiting for {} active flushes to complete...", activeFlushCount.get());
+                }
             }
         } catch (InterruptedException e) {
-            scheduler.shutdownNow();
+            flushExecutor.shutdownNow();
             Thread.currentThread().interrupt();
         }
 
-        flushBatch(); // Flush any remaining entries
         logger.info("MySqlWriter closed");
     }
 
