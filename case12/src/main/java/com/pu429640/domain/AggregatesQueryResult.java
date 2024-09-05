@@ -1,6 +1,7 @@
 package com.pu429640.domain;
 
 import java.util.List;
+import java.util.Objects;
 
 public class AggregatesQueryResult {
 
@@ -37,5 +38,18 @@ public class AggregatesQueryResult {
                 "columns=" + columns +
                 ", rows=" + rows +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AggregatesQueryResult that = (AggregatesQueryResult) o;
+        return Objects.equals(columns, that.columns) && Objects.equals(rows, that.rows);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(columns, rows);
     }
 }

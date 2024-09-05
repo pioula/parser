@@ -78,8 +78,9 @@ public class EchoClient {
 
         // Query data using MySqlReader
         AggregatesQueryResult result = mySqlReader.getAggregates(timeFrom, timeTo, action, aggregates, origin, brandId, categoryId);
-        if (expectedResult != result) {
-            log.info("key: a: {}, agg: {}, o: {}, b: {}, c: {}", action, aggregates, origin, brandId, categoryId);
+        if (!expectedResult.equals(result)) {
+            log.info("MINEEEEE: {}", result);
+            log.info("THEEEEIRS: {}", expectedResult);
         }
         return ResponseEntity.ok(result);
     }
