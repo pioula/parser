@@ -1,6 +1,7 @@
 package com.pu429640;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pu429640.config.Config;
 import com.pu429640.domain.UserTagEvent;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -62,6 +63,8 @@ public class UserTagAggregator {
 
     private static Serde<UserTagEvent> createUserTagEventSerde() {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+
         Serializer<UserTagEvent> serializer = (topic, data) -> {
             try {
                 return mapper.writeValueAsBytes(data);
@@ -81,6 +84,8 @@ public class UserTagAggregator {
 
     private static Serde<Aggregation> createAggregationSerde() {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        
         Serializer<Aggregation> serializer = (topic, data) -> {
             try {
                 return mapper.writeValueAsBytes(data);
