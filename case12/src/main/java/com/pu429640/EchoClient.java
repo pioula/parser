@@ -38,7 +38,6 @@ public class EchoClient {
         this.userTagStorage = userTagStorage;
         this.kafkaProducerService = kafkaProducerService;
         this.mySqlReader = mySqlReader;
-        log.info("Version: 12");
     }
 
     @PostMapping("/user_tags")

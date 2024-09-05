@@ -1,5 +1,7 @@
 # Kafka
 
+helm uninstall kafka oci://registry-1.docker.io/bitnamicharts/kafka
+
 helm install kafka oci://registry-1.docker.io/bitnamicharts/kafka \
 --set listeners.client.protocol=PLAINTEXT \
 --set listeners.controller.protocol=PLAINTEXT

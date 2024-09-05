@@ -85,7 +85,7 @@ public class UserTagAggregator {
     private static Serde<Aggregation> createAggregationSerde() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
-        
+
         Serializer<Aggregation> serializer = (topic, data) -> {
             try {
                 return mapper.writeValueAsBytes(data);
