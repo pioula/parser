@@ -6,6 +6,7 @@ data:
   update-node.sh: |
     #!/bin/sh
     REDIS_NODES="/data/nodes.conf"
+    [ -f ${REDIS_NODES} ] || touch ${REDIS_NODES}
     sed -i -e "/myself/ s/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/${POD_IP}/" ${REDIS_NODES}
     exec "$@"
   redis.conf: |+
