@@ -28,10 +28,5 @@ public class RedisConfig {
         template.setConnectionFactory(connectionFactory);
         return template;
     }
-    
-    @PostConstruct
-    public void warmUpRedisConnection() {
-        redisConnectionFactory.getConnection().ping();
-    }
 }
     

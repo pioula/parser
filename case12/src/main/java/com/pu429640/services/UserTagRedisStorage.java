@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class UserTagRedisStorage implements IUserTagStorage {
+public class UserTagRedisStorage {
     private static final Logger log = LoggerFactory.getLogger(UserTagRedisStorage.class);
 
 
@@ -37,7 +37,6 @@ public class UserTagRedisStorage implements IUserTagStorage {
         this.redisTemplate = redisTemplate;
     }
 
-    @Override
     public void addUserTag(UserTagEvent event) {
         if (event == null || event.getCookie() == null || event.getAction() == null) {
             return; // Ignore null events or events with null cookie or action
@@ -50,7 +49,6 @@ public class UserTagRedisStorage implements IUserTagStorage {
         redisTemplate.opsForZSet().removeRange(key, 0, -MAX_TAGS_PER_TYPE - 1);
     }
 
-    @Override
     public UserProfileResult getUserProfile(String cookie, String timeRangeStr, int limit) {
         if (cookie == null || timeRangeStr == null) {
             return new UserProfileResult(cookie, new ArrayList<>(), new ArrayList<>());

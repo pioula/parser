@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import com.pu429640.services.MySqlReader;
+import com.pu429640.services.UserTagRedisStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,6 @@ import com.pu429640.domain.Aggregate;
 import com.pu429640.domain.AggregatesQueryResult;
 import com.pu429640.domain.UserProfileResult;
 import com.pu429640.domain.UserTagEvent;
-import com.pu429640.services.IUserTagStorage;
 import com.pu429640.services.KafkaProducerService;
 
 @RestController
@@ -29,12 +29,12 @@ public class EchoClient {
     private static final Logger log = LoggerFactory.getLogger(EchoClient.class);
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
-    private final IUserTagStorage userTagStorage;
+    private final UserTagRedisStorage userTagStorage;
     private final KafkaProducerService kafkaProducerService;
     private final MySqlReader mySqlReader;
 
     @Autowired
-    public EchoClient(IUserTagStorage userTagStorage, KafkaProducerService kafkaProducerService, MySqlReader mySqlReader) {
+    public EchoClient(UserTagRedisStorage userTagStorage, KafkaProducerService kafkaProducerService, MySqlReader mySqlReader) {
         this.userTagStorage = userTagStorage;
         this.kafkaProducerService = kafkaProducerService;
         this.mySqlReader = mySqlReader;
