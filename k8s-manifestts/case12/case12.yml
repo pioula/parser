@@ -18,18 +18,29 @@ spec:
         app: case12
     spec:
       containers:
-      - image: pioula/case12:8
+      - image: pioula/case12:20
         name: case12
         ports:
         - containerPort: 8088
         env:
         - name: REDIS_HOST
-          value: "redis-service"
+          value: "redis-cluster"
         - name: REDIS_PORT
           value: "6379"
         - name: STORAGE_TYPE
           value: "redis"
         - name: REDIS_POOL_MIN_IDLE
           value: "100"
+        - name: MYSQL_URL
+          value: "jdbc:mysql://mysql-cluster:6447/allezondb"
+        - name: MYSQL_USER
+          value: "root"
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mypwds
+              key: rootPassword
+        - name: MYSQL_TABLE_NAME
+          value: "user_tag_aggregations"
         resources: {}
 status: {}
