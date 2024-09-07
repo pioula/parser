@@ -14,6 +14,7 @@ echo "Installing Ansible"
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y python3-pip
 sudo apt -y install ansible sshpass
+sudo apt-get -y install jq
 
 #Download Kubernetes Tools using Curl:
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
