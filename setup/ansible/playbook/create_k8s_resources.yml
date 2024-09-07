@@ -6,6 +6,7 @@
   - name: Deploy redis config map
     kubernetes.core.k8s:
       src: ~/k8s-manifests/redis/cm.yml
+      namespace: default
       wait: yes
       wait_timeout: 300    
   - name: Deploy redis

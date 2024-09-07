@@ -24,7 +24,7 @@ curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stabl
 echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
 
 #Install Kubernetes Tools: 
-sudo install -y -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
 # Use the provided username and password in the loop
 for i in $(seq -w 01 10); do
