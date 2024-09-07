@@ -25,7 +25,8 @@
       wait: yes
       wait_timeout: 300
       
-  - ansible.builtin.shell: "bash ~/k8s-manifests/redis/redis.sh"
+  - name: Configure Redis Cluster
+    shell: "bash ~/k8s-manifests/redis/redis.sh"
     register: redis_setup_result
     changed_when: redis_setup_result.rc == 0
     failed_when: redis_setup_result.rc != 0
