@@ -1,7 +1,3 @@
-# Files to change
-# - kube_inventory st115 -> your_user_name
-# - kube_master -> st115 -> your_user_name
-# - kube_workers -> st115 -> your_user_name
 # on vm110
 #!/bin/bash
 
@@ -43,9 +39,9 @@ echo "Installation Ansible successful!"
 echo "Configuring kubernetes cluster"
 
 cp -r ../ansible/ ~/
-ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_dependencies.yml -i ~/ansible/inventory/kube_inventory
-ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_master.yml -i ~/ansible/inventory/kube_inventory
-ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_workers.yml -i ~/ansible/inventory/kube_inventory
+ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_dependencies.yml -i ~/ansible/inventory/kube_inventory.yml -e "user=$username"
+ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_master.yml -i ~/ansible/inventory/kube_inventory.yml -e "user=$username"
+ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_workers.yml -i ~/ansible/inventory/kube_inventory.yml -e "user=$username"
 
 echo "Configuration of the cluster complete!"
 echo "Creating kubernetes resources:"
@@ -54,4 +50,4 @@ cp -r ../k8s-manifests ~/
 mkdir ~/.kube
 sudo sshpass -p $password ssh -o "StrictHostKeyChecking=no" "$username@${username}vm102.rtb-lab.pl" "sudo cat /etc/kubernetes/admin.conf" > ~/.kube/config
 
-ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/create_k8s_resources.yml -i ~/ansible/inventory/kube_inventory
+ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password mysql_password=$password" ~/ansible/playbook/create_k8s_resources.yml -i ~/ansible/inventory/kube_inventory.yml -e "user=$username"

@@ -16,12 +16,12 @@
   tasks:
     - name: Enable TCP port 6443 (On Master) is able to connect from Worker
       wait_for:
-        host: st115vm102.rtb-lab.pl
+        host: "{{ ansible_user }}vm102.rtb-lab.pl"
         port: 6443
         timeout: 30
 
     - name: Join worker to cluster
-      shell: "{{ hostvars['st115@st115vm102.rtb-lab.pl'].join_command }} >> node_joined.log"
+      shell: "{{ hostvars[ansible_user + '@' + ansible_user + 'vm102.rtb-lab.pl'].join_command }} >> node_joined.log"
       args:
-        chdir: /home/st115
+        chdir: "/home/{{ ansible_user }}"
         creates: node_joined.log
