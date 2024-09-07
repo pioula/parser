@@ -1,7 +1,15 @@
 - name: Create K8S resources
   hosts: ansible
   tasks:
-  - name: Create parser namespace
+  - name: Deploy local-path
     kubernetes.core.k8s:
-      name: parser
-      src: ~/k8s-manifests/namespace/namespace.yml
+      src: ~/k8s-manifests/local-path/local-path.yml
+      wait: yes
+  - name: Deploy redis
+    kubernetes.core.k8s:
+      src: ~/k8s-manifests/redis/redis-cluster.yml
+      wait: yes
+  - name: Execute Redis setup script
+      command: bash ~/k8s-manifests/redis/redis.sh
+      args:
+        chdir: "~/k8s-manifests/redis"

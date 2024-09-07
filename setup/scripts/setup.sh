@@ -10,9 +10,6 @@ read -p "Enter your username: " username
 read -s -p "Enter your password: " password
 echo
 
-#Validate install:
-kubectl version
-
 echo "Installing Ansible"
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y python3-pip
@@ -53,7 +50,7 @@ echo "Configuration of the cluster complete!"
 echo "Creating kubernetes resources:"
 cp -r ../k8s-manifests ~/
 
-mkdir ~/.kube/config
-sudo scp "$username@${username}vm110.rtb-lab.pl:/etc/kubernetes/admin.conf" ~/.kube/config
+mkdir ~/.kube
+sudo sshpass -p $password ssh -o "StrictHostKeyChecking=no" "$username@${username}vm102.rtb-lab.pl" "sudo cat /etc/kubernetes/admin.conf" > ~/.kube/config
 
 ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/create_k8s_resources.yml -i ~/ansible/inventory/kube_inventory
