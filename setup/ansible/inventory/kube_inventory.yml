@@ -1,6 +1,4 @@
 all:
-  vars:
-    user: set_this_user
   children:
     master:
       hosts:
