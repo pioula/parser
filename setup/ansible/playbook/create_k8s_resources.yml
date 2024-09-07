@@ -10,6 +10,6 @@
       src: ~/k8s-manifests/redis/redis-cluster.yml
       wait: yes
   - name: Execute Redis setup script
-      command: bash ~/k8s-manifests/redis/redis.sh
-      args:
-        chdir: "~/k8s-manifests/redis"
+    command: bash ~/k8s-manifests/redis/redis.sh
+    args:
+      chdir: "~/k8s-manifests/redis"
