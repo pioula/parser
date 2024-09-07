@@ -30,6 +30,6 @@ echo "Installation Ansible successful!"
 echo "Configuring kubernetes cluster"
 
 cp -r ../ansible/ ~/
-ansible-playbook ~/ansible/playbook/kube_dependencies.yml -i ~/ansible/inventory/kube_inventory
-ansible-playbook ~/ansible/playbook/kube_master.yml -i ~/ansible/inventory/kube_inventory
-ansible-playbook ~/ansible/playbook/kube_workers.yml -i ~/ansible/inventory/kube_inventory
+ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_dependencies.yml -i ~/ansible/inventory/kube_inventory
+ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_master.yml -i ~/ansible/inventory/kube_inventory
+ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_workers.yml -i ~/ansible/inventory/kube_inventory
