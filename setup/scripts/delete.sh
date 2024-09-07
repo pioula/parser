@@ -3,4 +3,3 @@ kubectl delete pvc data-redis-cluster-0 data-redis-cluster-1 data-redis-cluster-
 kubectl delete -f ~/k8s-manifests/redis/cm.yml
 kubectl delete -f ~/k8s-manifests/kafka/kafka.yml
 kubectl delete -f ~/k8s-manifests/kafka/zookeeper.yml
-kubectl delete -f ~/k8s-manifests/namespace/namespace.yml

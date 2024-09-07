@@ -111,19 +111,19 @@
     failed_when: kafka_cluster.rc != 0
 
   - name: Wait for Kafka cluster to become available
-      kubernetes.core.k8s_info:
-        api_version: apps/v1
-        kind: StatefulSet
-        name: kafka-controller
-        namespace: parser  # Adjust this to your actual namespace
-      register: kafka_status
-      until: 
-        - kafka_status.resources is defined
-        - kafka_status.resources | length > 0
-        - kafka_status.resources[0].status.readyReplicas is defined
-        - kafka_status.resources[0].status.readyReplicas == kafka_status.resources[0].spec.replicas
-      retries: 30
-      delay: 10
+    kubernetes.core.k8s_info:
+      api_version: apps/v1
+      kind: StatefulSet
+      name: kafka-controller
+      namespace: parser  # Adjust this to your actual namespace
+    register: kafka_status
+    until: 
+      - kafka_status.resources is defined
+      - kafka_status.resources | length > 0
+      - kafka_status.resources[0].status.readyReplicas is defined
+      - kafka_status.resources[0].status.readyReplicas == kafka_status.resources[0].spec.replicas
+    retries: 30
+    delay: 10
 
   - name: Display Kafka cluster status
     ansible.builtin.debug:
