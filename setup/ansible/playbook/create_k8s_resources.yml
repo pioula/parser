@@ -13,6 +13,8 @@
   - name: Deploy local-path
     shell: kubectl apply -f ~/k8s-manifests/local-path/local-path.yml
 
+### REDIS
+
   - name: Deploy redis config map
     kubernetes.core.k8s:
       src: ~/k8s-manifests/redis/cm.yml
@@ -36,6 +38,8 @@
   - name: Display Redis setup script output
     ansible.builtin.debug:
       var: redis_setup_result.stdout_lines
+
+### MYSQL
 
   - name: Create MySQL custom resource definition
     shell: "kubectl apply -f https://raw.githubusercontent.com/mysql/mysql-operator/9.0.1-2.2.1/deploy/deploy-crds.yaml"
@@ -73,3 +77,66 @@
     register: mysql_cluster
     changed_when: mysql_cluster.rc == 0
     failed_when: mysql_cluster.rc != 0
+
+### Kafka
+  - name: Create Zookeeper cluster
+    shell: "kubectl apply -f ~/k8s-manifests/kafka/zookeeper.yml"
+    register: zookeeper_cluster
+    changed_when: zookeeper_cluster.rc == 0
+    failed_when: zookeeper_cluster.rc != 0
+
+  - name: Wait for Zookeeper cluster to become available
+    kubernetes.core.k8s_info:
+      api_version: apps/v1
+      kind: StatefulSet
+      name: crs-zookeeper
+      namespace: parser  # Adjust this to your actual namespace
+    register: zookeeper_status
+    until: 
+      - zookeeper_status.resources is defined
+      - zookeeper_status.resources | length > 0
+      - zookeeper_status.resources[0].status.readyReplicas is defined
+      - zookeeper_status.resources[0].status.readyReplicas == zookeeper_status.resources[0].spec.replicas
+    retries: 30
+    delay: 10
+
+  - name: Display Zookeeper cluster status
+    ansible.builtin.debug:
+      var: zookeeper_status
+
+  - name: Create Kafka cluster
+    shell: "kubectl apply -f ~/k8s-manifests/kafka/kafka.yml"
+    register: kafka_cluster
+    changed_when: kafka_cluster.rc == 0
+    failed_when: kafka_cluster.rc != 0
+
+  - name: Wait for Kafka cluster to become available
+      kubernetes.core.k8s_info:
+        api_version: apps/v1
+        kind: StatefulSet
+        name: kafka-controller
+        namespace: parser  # Adjust this to your actual namespace
+      register: kafka_status
+      until: 
+        - kafka_status.resources is defined
+        - kafka_status.resources | length > 0
+        - kafka_status.resources[0].status.readyReplicas is defined
+        - kafka_status.resources[0].status.readyReplicas == kafka_status.resources[0].spec.replicas
+      retries: 30
+      delay: 10
+
+  - name: Display Kafka cluster status
+    ansible.builtin.debug:
+      var: kafka_status
+  
+  - name: Configure Kafka Cluster
+    shell: "bash ~/k8s-manifests/kafka/kafka.sh"
+    register: kafka_setup_result
+    changed_when: kafka_setup_result.rc == 0
+    failed_when: kafka_setup_result.rc != 0
+    environment:
+      KUBECONFIG: "{{ ansible_env.HOME }}/.kube/config"
+    
+  - name: Display Kafka setup script output
+    ansible.builtin.debug:
+      var: kafka_setup_result.stdout_lines

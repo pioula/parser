@@ -1,0 +1,2 @@
+kubectl exec kafka-controller-0 -- kafka-topics.sh --bootstrap-server kafka-controller-headless.parser.svc.cluster.local:9092 --create --topic usertagevents --partitions 3 --replication-factor 3
+kubectl exec kafka-controller-0 -- kafka-topics.sh --bootstrap-server kafka-controller-headless.parser.svc.cluster.local:9092 --list

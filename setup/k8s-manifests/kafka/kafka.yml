@@ -1,58 +1,65 @@
-kind: Deployment
-apiVersion: apps/v1
+apiVersion: v1
+kind: Service
 metadata:
-  name: kafka-deployment
-  labels:
-    app: kafka
+  name: kafka
 spec:
-  replicas: 1
+  selector:
+    app: kafka-cluster
+  ports:
+  - port: 9092
+    targetPort: 9092
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-controller-headless
+spec:
+  ports:
+  - port: 9092
+    targetPort: 9092
+  clusterIP: None
+  selector:
+    app: kafka-cluster
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka-controller
+spec:
+  replicas: 3
   selector:
     matchLabels:
-      app: kafka
+      app: kafka-cluster
+  serviceName: "kafka-controller-headless"
   template:
     metadata:
       labels:
-        app: kafka
+        app: kafka-cluster
     spec:
       containers:
-      - name: broker
-        image: confluentinc/cp-kafka:7.0.1
+      - name: kafka
+        image: bitnami/kafka:2.6.0  
+        securityContext:
+          runAsUser: 0
+        resources:
+          requests:
+            memory: "1G"
+            cpu: "1"             
         ports:
         - containerPort: 9092
         command:
         - sh
         - -c
         - |
-          kafka-topics --create --if-not-exists \
-            --topic usertagevents \
-            --partitions 1 \
-            --replication-factor 1 \
-            --bootstrap-server localhost:9092 &
-          /etc/confluent/docker/run
+          export KAFKA_CFG_ADVERTISED_LISTENERS="PLAINTEXT://${HOSTNAME}.kafka-controller-headless.${POD_NAMESPACE}.svc.cluster.local:9092"
+          exec /entrypoint.sh /run.sh
         env:
-        - name: KAFKA_BROKER_ID
-          value: "1"
-        - name: KAFKA_ZOOKEEPER_CONNECT
-          value: 'zookeeper-service:2181'
-        - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
-          value: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-        - name: KAFKA_ADVERTISED_LISTENERS
-          value: PLAINTEXT://:29092,PLAINTEXT_INTERNAL://kafka-service:9092
-        - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
-          value: "1"
-        - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
-          value: "1"
-        - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
-          value: "1"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: kafka-service
-spec:
-  selector:
-    app: kafka
-  ports:
-    - protocol: TCP
-      port: 9092
-      targetPort: 9092
+        - name: KAFKA_CFG_ZOOKEEPER_CONNECT
+          value: crs-zookeeper-0.zookeeper-cluster.parser.svc.cluster.local:2181,crs-zookeeper-1.zookeeper-cluster.parser.svc.cluster.local:2181,crs-zookeeper-2.zookeeper-cluster.parser.svc.cluster.local:2181
+        - name: ALLOW_PLAINTEXT_LISTENER
+          value: "yes"
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
