@@ -103,9 +103,9 @@ public class MySqlWriter {
 
         batchEntries.offer(entry);
 
-    //    if (batchEntries.size() >= BATCH_SIZE) {
-    //        flushBatch();
-    //    }
+        if (batchEntries.size() >= BATCH_SIZE) {
+            flushBatch();
+        }
     }
 
     private void flushBatch() {
