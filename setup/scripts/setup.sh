@@ -40,7 +40,7 @@ echo "Configuring kubernetes cluster"
 
 cp -r ../ansible/ ~/
 
-sed -i "s/{{ user }}/$username/g" "~/ansible/inventory/kube_inventory"
+sed -i "s/{{ user }}/$username/g" "$HOME/ansible/inventory/kube_inventory"
 
 ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_dependencies.yml -i ~/ansible/inventory/kube_inventory
 ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_master.yml -i ~/ansible/inventory/kube_inventory
