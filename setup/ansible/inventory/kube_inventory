@@ -1,0 +1,5 @@
+[master]
+st115@st115vm102.rtb-lab.pl
+
+[workers]
+st115@st115vm1[03:07].rtb-lab.pl
