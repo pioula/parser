@@ -5,10 +5,12 @@
     kubernetes.core.k8s:
       src: ~/k8s-manifests/local-path/local-path.yml
       wait: yes
+      wait_timeout: 300
   - name: Deploy redis
     kubernetes.core.k8s:
       src: ~/k8s-manifests/redis/redis-cluster.yml
       wait: yes
+      wait_timeout: 300
   - name: Execute Redis setup script
     command: bash ~/k8s-manifests/redis/redis.sh
     args:

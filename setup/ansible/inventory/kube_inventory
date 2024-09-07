@@ -2,7 +2,7 @@
 st115@st115vm102.rtb-lab.pl
 
 [workers]
-st115@st115vm1[03:07].rtb-lab.pl
+st115@st115vm1[03:09].rtb-lab.pl
 
 [ansible]
 st115@st115vm110.rtb-lab.pl
