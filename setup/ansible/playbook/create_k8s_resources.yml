@@ -2,7 +2,7 @@
   hosts: ansible
   tasks:
   - name: Deploy local-path
-    command: kubectl apply -f ~/k8s-manifests/local-path/local-path.yml
+    shell: kubectl apply -f ~/k8s-manifests/local-path/local-path.yml
   - name: Deploy redis config map
     kubernetes.core.k8s:
       src: ~/k8s-manifests/redis/cm.yml
@@ -14,4 +14,4 @@
       wait: yes
       wait_timeout: 300
   - name: Execute Redis setup script
-    command: bash ~/k8s-manifests/redis/redis.sh
+    shell: bash ~/k8s-manifests/redis/redis.sh
