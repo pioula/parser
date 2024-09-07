@@ -36,3 +36,40 @@
   - name: Display Redis setup script output
     ansible.builtin.debug:
       var: redis_setup_result.stdout_lines
+
+  - name: Create MySQL custom resource definition
+    shell: "kubectl apply -f https://raw.githubusercontent.com/mysql/mysql-operator/9.0.1-2.2.1/deploy/deploy-crds.yaml"
+    register: mysql_crd
+    changed_when: mysql_crd.rc == 0
+    failed_when: mysql_crd.rc != 0
+
+  - name: Create MySQL operator
+    shell: "kubectl apply -f https://raw.githubusercontent.com/mysql/mysql-operator/9.0.1-2.2.1/deploy/deploy-operator.yaml"
+    register: mysql_operator
+    changed_when: mysql_operator.rc == 0
+    failed_when: mysql_operator.rc != 0 
+
+  - name: Wait for MySQL operator to become available
+    kubernetes.core.k8s_info:
+      api_version: apps/v1
+      kind: Deployment
+      name: mysql-operator
+      namespace: mysql-operator
+    register: mysql_operator_status
+    until: 
+      - mysql_operator_status.resources is defined
+      - mysql_operator_status.resources | length > 0
+      - mysql_operator_status.resources[0].status.availableReplicas is defined
+      - mysql_operator_status.resources[0].status.availableReplicas == mysql_operator_status.resources[0].spec.replicas
+    retries: 30
+    delay: 10
+  
+  - name: Display MySQL operator status
+    ansible.builtin.debug:
+      var: mysql_operator_status
+  
+  - name: Create MySQL cluster
+    shell: "kubectl apply -f ~/k8s-manifests/mysql/innodb.yml"
+    register: mysql_cluster
+    changed_when: mysql_cluster.rc == 0
+    failed_when: mysql_cluster.rc != 0
