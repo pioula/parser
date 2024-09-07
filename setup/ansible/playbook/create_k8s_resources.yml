@@ -1,18 +1,29 @@
 - name: Create K8S resources
   hosts: ansible
   tasks:
+  - name: Create Parser Namespace
+    kubernetes.core.k8s:
+      src: ~/k8s-manifests/namespace/namespace.yml
+      wait: yes
+      wait_timeout: 300  
+
+  - name: Set default namespace to parser
+    shell: kubectl config set-context --current --namespace=parser
+
   - name: Deploy local-path
     shell: kubectl apply -f ~/k8s-manifests/local-path/local-path.yml
+
   - name: Deploy redis config map
     kubernetes.core.k8s:
       src: ~/k8s-manifests/redis/cm.yml
-      namespace: default
       wait: yes
       wait_timeout: 300    
+
   - name: Deploy redis
     kubernetes.core.k8s:
       src: ~/k8s-manifests/redis/redis-cluster.yml
       wait: yes
       wait_timeout: 300
+      
   - name: Execute Redis setup script
     shell: bash ~/k8s-manifests/redis/redis.sh
