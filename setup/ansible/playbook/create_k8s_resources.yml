@@ -25,16 +25,12 @@
       wait: yes
       wait_timeout: 300
       
-  - name: Execute Redis setup script
-    ansible.builtin.script:
-      cmd: ~/k8s-manifests/redis/redis.sh
+  - ansible.builtin.shell: "bash ~/k8s-manifests/redis/redis.sh"
     register: redis_setup_result
     changed_when: redis_setup_result.rc == 0
     failed_when: redis_setup_result.rc != 0
-    args:
-      executable: /bin/bash
     environment:
-      KUBECONFIG: "{{ ansible_env.HOME }}/.kube/config"  # Ensure kubectl can access the cluster
+      KUBECONFIG: "{{ ansible_env.HOME }}/.kube/config"
     
   - name: Display Redis setup script output
     ansible.builtin.debug:
