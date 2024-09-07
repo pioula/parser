@@ -18,13 +18,13 @@ spec:
         app: case12
     spec:
       containers:
-      - image: pioula/case12:25
+      - image: pioula/case12:28
         name: case12
         ports:
         - containerPort: 8088
         env:
         - name: REDIS_HOST
-          value: "redis-cluster-0.redis-cluster-headless:6379,redis-cluster-1.redis-cluster-headless:6379,redis-cluster-2.redis-cluster-headless:6379,redis-cluster-3.redis-cluster-headless:6379,redis-cluster-4.redis-cluster-headless:6379,redis-cluster-5.redis-cluster-headless:6379"
+          value: "redis-cluster:6379"
         - name: REDIS_PORT
           value: "6379"
         - name: STORAGE_TYPE

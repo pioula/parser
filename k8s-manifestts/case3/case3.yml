@@ -25,7 +25,7 @@ spec:
               name: mypwds
               key: rootPassword
       containers:
-      - image: pioula/case3:28
+      - image: pioula/case3:30
         name: case3
         env:
         - name: MYSQL_ROOT_PASSWORD
