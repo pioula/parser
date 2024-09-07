@@ -38,9 +38,10 @@ pip install kubernetes
 echo "Installation Ansible successful!"
 echo "Configuring kubernetes cluster"
 
-sed -i 's/{{ user }}/$username/g' "../ansible/inventory/kube_inventory"
-
 cp -r ../ansible/ ~/
+
+sed -i "s/{{ user }}/$username/g" "~/ansible/inventory/kube_inventory"
+
 ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_dependencies.yml -i ~/ansible/inventory/kube_inventory
 ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_master.yml -i ~/ansible/inventory/kube_inventory
 ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_workers.yml -i ~/ansible/inventory/kube_inventory

@@ -89,7 +89,7 @@
     failed_when: mysql_cluster.rc != 0
 
   - name: Create allezondb database
-    shell: "kubectl run --rm -it myshell --image=container-registry.oracle.com/mysql/community-operator -- mysqlsh --uri root:sakila@mysql-cluster -e "CREATE DATABASE IF NOT EXISTS allezondb;"
+    shell: 'kubectl run --rm -it myshell --image=container-registry.oracle.com/mysql/community-operator -- mysqlsh --uri root:{{ mysql_password }}@mysql-cluster -e "CREATE DATABASE IF NOT EXISTS allezondb;"'
     register: allezondb_database
     changed_when: allezondb_database.rc == 0
     failed_when: allezondb_database.rc != 0  
