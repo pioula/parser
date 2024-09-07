@@ -2,7 +2,7 @@
 {{ user }}@{{ user }}vm102.rtb-lab.pl
 
 [workers]
-{{ user }}@s{{ user }}vm1[03:09].rtb-lab.pl
+{{ user }}@{{ user }}vm1[03:09].rtb-lab.pl
 
 [ansible]
 {{ user }}@{{ user }}vm110.rtb-lab.pl
