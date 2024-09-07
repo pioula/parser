@@ -23,7 +23,7 @@ ansible-galaxy collection install kubernetes.core
 ansible-galaxy collection install community.kubernetes
 ansible-galaxy collection install cloud.common
 
-sudo apt install python3-pip
+sudo apt -y install python3-pip
 pip install kubernetes
 
 echo "Installation Ansible successful!"
@@ -33,3 +33,9 @@ cp -r ../ansible/ ~/
 ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_dependencies.yml -i ~/ansible/inventory/kube_inventory
 ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_master.yml -i ~/ansible/inventory/kube_inventory
 ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/kube_workers.yml -i ~/ansible/inventory/kube_inventory
+
+echo "Configuration of the cluster complete!"
+echo "Creating kubernetes resources:"
+cp -r ../k8s-manifests ~/
+
+ansible-playbook --extra-vars "ansible_user=$username ansible_password=$password" ~/ansible/playbook/create_k8s_resources.yml -i ~/ansible/inventory/kube_inventory

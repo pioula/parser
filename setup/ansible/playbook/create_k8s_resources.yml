@@ -1,0 +1,7 @@
+- name: Create K8S resources
+  hosts: master
+  tasks:
+  - name: Create parser namespace
+    kubernetes.core.k8s:
+      name: parser
+      src: ~/k8s-manifests/namespace/namespace.yml
