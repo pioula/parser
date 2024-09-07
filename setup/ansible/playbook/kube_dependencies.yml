@@ -1,5 +1,5 @@
 - name: Kubernetes Dependencies
-  hosts: all
+  hosts: all:!ansible
   become: yes
   tasks:
     - name: Updates
@@ -7,7 +7,6 @@
         update_cache: yes
 
     - name: Reboot
-      hosts: all:!ansible
       reboot:
 
     - name: Disable SWAP
