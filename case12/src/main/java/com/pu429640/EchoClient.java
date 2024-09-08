@@ -68,7 +68,6 @@ public class EchoClient {
             @RequestParam(value = "category_id", required = false) String categoryId,
             @RequestBody(required = false) AggregatesQueryResult expectedResult) {
 
-        // Parse time range
         String[] timeRange = timeRangeStr.split("_");
         if (timeRange.length != 2) {
             return ResponseEntity.badRequest().build();
@@ -76,12 +75,8 @@ public class EchoClient {
         LocalDateTime timeFrom = LocalDateTime.parse(timeRange[0], FORMATTER);
         LocalDateTime timeTo = LocalDateTime.parse(timeRange[1], FORMATTER);
 
-        // Query data using MySqlReader
         AggregatesQueryResult result = mySqlReader.getAggregates(timeFrom, timeTo, action, aggregates, origin, brandId, categoryId);
-        if (!expectedResult.equals(result)) {
-            log.info("MINEEEEE: {}", result);
-            log.info("THEEEEIRS: {}", expectedResult);
-        }
+
         return ResponseEntity.ok(result);
     }
 }

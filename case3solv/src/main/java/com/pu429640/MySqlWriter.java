@@ -25,7 +25,6 @@ public class MySqlWriter {
    private static final int BATCH_SIZE = 30000;
    private static final int FLUSH_INTERVAL_SECONDS = 5;
     private final ScheduledExecutorService scheduler;
-    private Instant lastProcessedWindowStart;
     private final ExecutorService flushExecutor;
     private final AtomicInteger activeFlushCount;
 
@@ -39,7 +38,6 @@ public class MySqlWriter {
 
         createTableIfNotExists();
         schedulePeriodicFlush();
-        this.lastProcessedWindowStart = Instant.EPOCH;
         this.flushExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.activeFlushCount = new AtomicInteger(0);
     }
@@ -68,16 +66,6 @@ public class MySqlWriter {
 
     public void writeAggregation(Windowed<String> windowedKey, Aggregation aggregation) {
         Instant currentWindowStart = Instant.ofEpochMilli(windowedKey.window().startTime().toEpochMilli());
-
-        // Check if this is a new window
-        if (currentWindowStart.isAfter(lastProcessedWindowStart)) {
-            logger.info("New window started at: {}", currentWindowStart);
-
-            // // Measure time to flush the batch (write the window data)
-            // flushBatch();
-
-            lastProcessedWindowStart = currentWindowStart;
-        }
 
         String[] keyParts = windowedKey.key().split(":");
 
